@@ -353,53 +353,64 @@ def process_stream():
             yield f"data: {json.dumps({'type': 'header', 'content': header_row})}\n\n"
             row_counter += 1
             
-            # Process tables with enhanced financial data extraction
-            if 'processed_tables' in result and result['processed_tables']:
-                for i, table in enumerate(result['processed_tables']):
-                    if table.get('structured_table') and not table['structured_table'].get('error'):
-                        table_data = table['structured_table']
-                        page = table.get('page', 'N/A')
-                        
-                        # Stream each table data row in XLSX format (no individual context)
-                        for key, value in table_data.items():
+            # Use enhanced data with context if available
+            if 'enhanced_data_with_context' in result and result['enhanced_data_with_context']:
+                print(f"Using enhanced data with context: {len(result['enhanced_data_with_context'])} rows")
+                for row_data in result['enhanced_data_with_context']:
+                    context = row_data.get('context', '')
+                    csv_row = f"row{row_counter}: {row_data.get('source', '')},{row_data.get('type', '')},{row_data.get('field', '')},{clean_csv_value(str(row_data.get('value', '')))},{row_data.get('page', 'N/A')},{clean_csv_value(context)}"
+                    csv_output.append(csv_row)
+                    yield f"data: {json.dumps({'type': 'row', 'content': csv_row})}\n\n"
+                    row_counter += 1
+            else:
+                # Fallback to original processing if enhanced data is not available
+                # Process tables with enhanced financial data extraction
+                if 'processed_tables' in result and result['processed_tables']:
+                    for i, table in enumerate(result['processed_tables']):
+                        if table.get('structured_table') and not table['structured_table'].get('error'):
+                            table_data = table['structured_table']
+                            page = table.get('page', 'N/A')
+                            
+                            # Stream each table data row in XLSX format (no individual context)
+                            for key, value in table_data.items():
+                                if key != 'error' and value:
+                                    # Create CSV-formatted row without individual context
+                                    csv_row = f"row{row_counter}: Table {i+1},Table Data,{key},{clean_csv_value(str(value))},{page},"
+                                    csv_output.append(csv_row)
+                                    yield f"data: {json.dumps({'type': 'row', 'content': csv_row})}\n\n"
+                                    row_counter += 1
+            
+                # Process key-value pairs (fallback)
+                if 'processed_key_values' in result and result['processed_key_values']:
+                    kv_data = result['processed_key_values'].get('structured_key_values', {})
+                    if kv_data and not kv_data.get('error'):
+                        for key, value in kv_data.items():
                             if key != 'error' and value:
                                 # Create CSV-formatted row without individual context
-                                csv_row = f"row{row_counter}: Table {i+1},Table Data,{key},{clean_csv_value(str(value))},{page},"
+                                csv_row = f"row{row_counter}: Key-Value Pairs,Structured Data,{key},{clean_csv_value(str(value))},N/A,"
                                 csv_output.append(csv_row)
                                 yield f"data: {json.dumps({'type': 'row', 'content': csv_row})}\n\n"
                                 row_counter += 1
-            
-            # Process key-value pairs
-            if 'processed_key_values' in result and result['processed_key_values']:
-                kv_data = result['processed_key_values'].get('structured_key_values', {})
-                if kv_data and not kv_data.get('error'):
-                    for key, value in kv_data.items():
-                        if key != 'error' and value:
-                            # Create CSV-formatted row without individual context
-                            csv_row = f"row{row_counter}: Key-Value Pairs,Structured Data,{key},{clean_csv_value(str(value))},N/A,"
-                            csv_output.append(csv_row)
-                            yield f"data: {json.dumps({'type': 'row', 'content': csv_row})}\n\n"
-                            row_counter += 1
-            
-            # Process document text facts and collect commentary
-            if 'processed_document_text' in result and result['processed_document_text']:
-                for chunk_idx, chunk in enumerate(result['processed_document_text']):
-                    if 'extracted_facts' in chunk and not chunk['extracted_facts'].get('error'):
-                        facts = chunk['extracted_facts']
-                        for key, value in facts.items():
-                            if key != 'error' and value:
-                                # Determine if this is footnote content
-                                data_type = 'Footnote' if 'footnote' in key.lower() else 'Financial Data'
-                                field_name = key.replace('_Footnote', ' (Footnote)').replace('Footnote_', 'Footnote: ')
-                                
-                                # Create CSV-formatted row without individual context
-                                csv_row = f"row{row_counter}: Text Chunk {chunk_idx+1},{data_type},{field_name},{clean_csv_value(str(value))},N/A,"
-                                csv_output.append(csv_row)
-                                yield f"data: {json.dumps({'type': 'row', 'content': csv_row})}\n\n"
-                                row_counter += 1
-                                
-                                # Collect for general commentary
-                                commentary_collection.append(f"{field_name}: {value}")
+                
+                # Process document text facts and collect commentary (fallback)
+                if 'processed_document_text' in result and result['processed_document_text']:
+                    for chunk_idx, chunk in enumerate(result['processed_document_text']):
+                        if 'extracted_facts' in chunk and not chunk['extracted_facts'].get('error'):
+                            facts = chunk['extracted_facts']
+                            for key, value in facts.items():
+                                if key != 'error' and value:
+                                    # Determine if this is footnote content
+                                    data_type = 'Footnote' if 'footnote' in key.lower() else 'Financial Data'
+                                    field_name = key.replace('_Footnote', ' (Footnote)').replace('Footnote_', 'Footnote: ')
+                                    
+                                    # Create CSV-formatted row without individual context
+                                    csv_row = f"row{row_counter}: Text Chunk {chunk_idx+1},{data_type},{field_name},{clean_csv_value(str(value))},N/A,"
+                                    csv_output.append(csv_row)
+                                    yield f"data: {json.dumps({'type': 'row', 'content': csv_row})}\n\n"
+                                    row_counter += 1
+                                    
+                                    # Collect for general commentary
+                                    commentary_collection.append(f"{field_name}: {value}")
             
             # Collect document text for general commentary
             document_text_list = data.get('document_text', [])
@@ -615,9 +626,9 @@ def process():
         # Process the structured JSON data with separate LLM calls and commentary matching
         result = process_structured_data_with_llm(data)
         
-        # Use the enhanced data with commentary if available
-        if 'enhanced_data_with_commentary' in result and result['enhanced_data_with_commentary']:
-            clean_data = result['enhanced_data_with_commentary']
+        # Use the enhanced data with context if available
+        if 'enhanced_data_with_context' in result and result['enhanced_data_with_context']:
+            clean_data = result['enhanced_data_with_context']
             
             # Add general commentary as a separate row if it exists
             if result.get('general_commentary'):
@@ -627,8 +638,29 @@ def process():
                     'field': 'Unmatched Commentary',
                     'value': result['general_commentary'][:500] + '...' if len(result['general_commentary']) > 500 else result['general_commentary'],
                     'page': 'N/A',
-                    'commentary': '',
-                    'has_commentary': False
+                    'context': '',
+                    'has_context': False
+                })
+        # Fallback to enhanced_data_with_commentary for backward compatibility
+        elif 'enhanced_data_with_commentary' in result and result['enhanced_data_with_commentary']:
+            clean_data = result['enhanced_data_with_commentary']
+            
+            # Add context column if missing
+            for row in clean_data:
+                if 'context' not in row:
+                    row['context'] = row.get('commentary', '')
+                    row['has_context'] = bool(row['context'])
+            
+            # Add general commentary as a separate row if it exists
+            if result.get('general_commentary'):
+                clean_data.append({
+                    'source': 'Document Text',
+                    'type': 'General Commentary',
+                    'field': 'Unmatched Commentary',
+                    'value': result['general_commentary'][:500] + '...' if len(result['general_commentary']) > 500 else result['general_commentary'],
+                    'page': 'N/A',
+                    'context': '',
+                    'has_context': False
                 })
         else:
             # Fallback to original processing if enhanced data is not available

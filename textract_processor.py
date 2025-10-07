@@ -404,13 +404,20 @@ def extract_structured_data_from_pdf_bytes(pdf_bytes: bytes) -> Dict[str, Any]:
         pdf_bytes (bytes): PDF file as bytes
         
     Returns:
-        Dict[str, Any]: Structured JSON with document_text, tables, and key_values
+        Dict[str, Any]: Structured JSON with document_text, tables, key_values, and full_text
     """
     try:
         # Try Amazon Textract first
         processor = TextractProcessor()
         result = processor.extract_text_from_pdf_bytes(pdf_bytes)
         result["extraction_method"] = "Amazon Textract"
+        
+        # Ensure full_text is available for context tracking
+        if "document_text" in result and result["document_text"]:
+            result["full_text"] = " ".join(result["document_text"])
+        else:
+            result["full_text"] = ""
+            
         return result
     except Exception as textract_error:
         print(f"Amazon Textract failed: {textract_error}")
@@ -422,17 +429,26 @@ def extract_structured_data_from_pdf_bytes(pdf_bytes: bytes) -> Dict[str, Any]:
             result = extract_structured_data_from_pdf_bytes_tesseract(pdf_bytes)
             result["extraction_method"] = "Tesseract OCR (Fallback)"
             result["textract_error"] = str(textract_error)
+            
+            # Ensure full_text is available for context tracking
+            if "document_text" in result and result["document_text"]:
+                result["full_text"] = " ".join(result["document_text"])
+            else:
+                result["full_text"] = ""
+                
             return result
         except Exception as tesseract_error:
             print(f"Tesseract OCR also failed: {tesseract_error}")
             # Return a basic structure with error information
+            error_text = f"Error: Both Textract and Tesseract failed. Textract: {str(textract_error)}, Tesseract: {str(tesseract_error)}"
             return {
-                "document_text": [f"Error: Both Textract and Tesseract failed. Textract: {str(textract_error)}, Tesseract: {str(tesseract_error)}"],
+                "document_text": [error_text],
                 "tables": [],
                 "key_values": [],
                 "footnotes": [],
                 "footnote_markers": {},
                 "enhanced_text": [],
+                "full_text": error_text,
                 "extraction_method": "Failed",
                 "textract_error": str(textract_error),
                 "tesseract_error": str(tesseract_error)

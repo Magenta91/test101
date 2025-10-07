@@ -479,5 +479,17 @@ async def process_commentary_matching(results: Dict[str, Any],
 
 def process_structured_data_with_llm(
         structured_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Synchronous wrapper for asynchronous processing"""
-    return asyncio.run(process_structured_data_with_llm_async(structured_data))
+    """Synchronous wrapper for asynchronous processing with context tracking"""
+    # Run the async processing
+    result = asyncio.run(process_structured_data_with_llm_async(structured_data))
+    
+    # Integrate context tracking
+    try:
+        from context_tracker import integrate_context_tracking
+        result = integrate_context_tracking(structured_data, result)
+        print(f"Context tracking completed: {result.get('context_tracking_summary', {})}")
+    except Exception as e:
+        print(f"Context tracking failed: {e}")
+        # Continue without context tracking if it fails
+    
+    return result
