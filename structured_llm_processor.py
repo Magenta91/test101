@@ -479,7 +479,7 @@ async def process_commentary_matching(results: Dict[str, Any],
 
 def process_structured_data_with_llm(
         structured_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Synchronous wrapper for asynchronous processing with context tracking"""
+    """Synchronous wrapper for asynchronous processing with context tracking and Weaviate enhancement"""
     # Run the async processing
     result = asyncio.run(process_structured_data_with_llm_async(structured_data))
     
@@ -491,5 +491,61 @@ def process_structured_data_with_llm(
     except Exception as e:
         print(f"Context tracking failed: {e}")
         # Continue without context tracking if it fails
+    
+    # Enhance with Weaviate + LLM context polishing (CONFIGURABLE)
+    try:
+        from context_config import get_context_mode
+        
+        mode = get_context_mode()
+        
+        if mode == "off":
+            print("Context enhancement disabled (mode: off)")
+            result["weaviate_enhancement"] = {
+                "enhancement_completed": False,
+                "mode": "off",
+                "error": "Context enhancement disabled"
+            }
+        else:
+            if mode == "fast":
+                from fast_context_processor import FastContextProcessor
+                processor = FastContextProcessor()
+                enhance_method = processor.enhance_extracted_data_with_context_fast
+            else:
+                from weaviate_context_processor import WeaviateContextProcessor
+                processor = WeaviateContextProcessor()
+                enhance_method = processor.enhance_extracted_data_with_context
+            
+            # Store document in Weaviate
+            document_text = structured_data.get('document_text', [])
+            if document_text and processor.connected:
+                document_id = processor.store_document_chunks(document_text)
+                
+                # Enhance results with polished context
+                result = enhance_method(structured_data, result, document_id)
+                
+                # Add metadata about enhancement
+                result["weaviate_enhancement"] = {
+                    "document_id": document_id,
+                    "chunks_stored": len(document_text),
+                    "enhancement_completed": True,
+                    "mode": mode
+                }
+                
+                print(f"Weaviate enhancement completed for document {document_id} (mode: {mode})")
+            else:
+                print("Skipping Weaviate enhancement (no document text or Weaviate not connected)")
+                result["weaviate_enhancement"] = {
+                    "enhancement_completed": False,
+                    "error": "No document text or Weaviate not connected",
+                    "mode": mode
+                }
+            
+    except Exception as e:
+        print(f"Weaviate enhancement failed: {e}")
+        # Continue without Weaviate enhancement if it fails
+        result["weaviate_enhancement"] = {
+            "enhancement_completed": False,
+            "error": str(e)
+        }
     
     return result
