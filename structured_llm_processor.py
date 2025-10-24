@@ -477,6 +477,437 @@ async def process_commentary_matching(results: Dict[str, Any],
     print(f"Commentary matching completed for {processed_count} items")
 
 
+def process_structured_data_with_llm_unified(structured_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Unified LLM extraction: Extracts field, value, and context together from all data sources.
+    Optimized for maximum field extraction while maintaining data quality.
+    """
+    if not structured_data:
+        return {"fields": {}}
+    
+    # Extract all data sources like legacy mode
+    document_text = structured_data.get('document_text', [])
+    tables = structured_data.get('tables', [])
+    key_values = structured_data.get('key_values', [])
+    
+    # Convert document_text to string if it's a list
+    if isinstance(document_text, list):
+        text_content = '\n'.join(document_text)
+    else:
+        text_content = str(document_text)
+    
+    # Prepare comprehensive data for extraction with enhanced content organization
+    all_data_sources = []
+    
+    # Add document text with enhanced structure
+    if text_content.strip():
+        # Organize text into logical sections for better extraction
+        text_lines = text_content.split('\n')
+        structured_text = "DOCUMENT TEXT (comprehensive analysis required):\n"
+        
+        # Process ALL text lines without grouping to avoid losing data
+        for i, line in enumerate(text_lines):
+            line = line.strip()
+            if line:
+                structured_text += f"LINE {i+1}: {line}\n"
+        
+        structured_text += "\nEXTRACT ALL DATA FROM EVERY LINE ABOVE\n"
+        
+        all_data_sources.append(structured_text)
+    
+    # Add comprehensive table data with enhanced extraction focus
+    if tables:
+        table_content = "TABLES (extract ALL data points - each cell, header, and relationship):\n"
+        for i, table in enumerate(tables):
+            table_content += f"\nTable {i+1} (Page {table.get('page', 'N/A')}) - EXTRACT ALL VALUES:\n"
+            if 'rows' in table:
+                rows = table['rows'][:50]  # Process even more rows
+                
+                # Enhanced table processing
+                headers = []
+                if rows and len(rows) > 0:
+                    headers = rows[0] if isinstance(rows[0], list) else [str(rows[0])]
+                    table_content += f"HEADERS: {' | '.join(str(h) for h in headers)}\n"
+                
+                # Process each row with comprehensive breakdown
+                for row_idx, row in enumerate(rows):
+                    if isinstance(row, list):
+                        table_content += f"Row {row_idx+1}: " + " | ".join(str(cell) for cell in row) + "\n"
+                        
+                        # Enhanced cell-by-cell extraction with header context
+                        if len(row) > 1 and headers:
+                            for col_idx, cell in enumerate(row):
+                                cell_str = str(cell).strip()
+                                if cell_str and cell_str not in ['', '-', 'N/A', 'nan']:
+                                    header = headers[col_idx] if col_idx < len(headers) else f"Col{col_idx+1}"
+                                    table_content += f"  DATA POINT: {header} = {cell_str}\n"
+                    else:
+                        table_content += f"Row {row_idx+1}: {str(row)}\n"
+                        
+                # Add table summary for context
+                table_content += f"TABLE {i+1} SUMMARY: Extract all financial figures, percentages, dates, and text values as separate fields\n\n"
+        all_data_sources.append(table_content)
+    
+    # Add comprehensive key-value pairs with enhanced processing
+    if key_values:
+        kv_content = "KEY-VALUE PAIRS (extract each as separate field with full context):\n"
+        for idx, kv in enumerate(key_values[:60]):  # Process more key-values
+            if isinstance(kv, dict):
+                key = kv.get('key', '')
+                value = kv.get('value', '')
+                if key and value:
+                    kv_content += f"FIELD {idx+1}: {key} = {value}\n"
+                    # Add additional context if available
+                    if 'confidence' in kv:
+                        kv_content += f"  Confidence: {kv['confidence']}\n"
+                    if 'page' in kv:
+                        kv_content += f"  Source Page: {kv['page']}\n"
+        kv_content += "\nEXTRACT ALL KEY-VALUE PAIRS AS SEPARATE FIELDS\n"
+        all_data_sources.append(kv_content)
+    
+    # Combine all data sources
+    comprehensive_content = "\n\n".join(all_data_sources)
+    
+    # Validate content length
+    content_length = len(comprehensive_content.strip())
+    if content_length < 30:
+        print(f"WARNING: Insufficient content for extraction ({content_length} chars)")
+        return {"fields": {}, "warning": "Insufficient content for meaningful extraction"}
+    
+    # Enhanced system prompt for maximum extraction with better context
+    system_prompt = """You are a comprehensive financial document data extractor specializing in extracting ALL meaningful data from financial reports, announcements, and business documents.
+
+COMPREHENSIVE EXTRACTION REQUIREMENTS:
+Extract EVERY piece of meaningful information including:
+
+1. FINANCIAL METRICS: Revenue, profit, EBITDA, margins, ratios, growth rates, forecasts, guidance
+2. CORPORATE DATA: Company names, executive names, locations, dates, periods, reporting dates
+3. BUSINESS SEGMENTS: Division performance, geographic regions, product lines, acquisitions
+4. OPERATIONAL DATA: Employee counts, office locations, customer metrics, market share
+5. FORWARD-LOOKING: Guidance, targets, forecasts, strategic initiatives, outlook statements
+6. GOVERNANCE: Board decisions, dividend declarations, capital management, debt facilities
+7. QUALITATIVE INSIGHTS: CEO statements, strategic commentary, market conditions, risks
+8. COMPARATIVE DATA: Prior period comparisons, year-over-year changes, benchmarks
+
+EXTRACTION STRATEGY:
+- Extract from ALL sources: document text, tables, key-value pairs, headers, footnotes
+- Create separate fields for each data point (don't combine multiple values)
+- Extract both current and historical data points
+- Include qualitative statements and strategic commentary
+- Extract guidance, targets, and forward-looking statements
+- Capture executive quotes and strategic insights
+- Include operational metrics and business segment data
+
+FIELD NAMING CONVENTIONS:
+- Use descriptive names: "Underlying_NPAT_1HFY23", "CEO_Strategic_Statement", "FY23_Guidance_Range"
+- Include periods: "Revenue_H1_2023", "EBIT_Margin_Prior_Year", "Dividend_Payment_Date"
+- Include segments: "Australian_Broking_Revenue", "Agencies_Profit_Growth", "BizCover_EBIT_Margin"
+- Include types: "Interim_Dividend", "Acquisition_Date", "Leverage_Ratio", "Cash_Position"
+
+CONTEXT REQUIREMENTS:
+- Provide exact sentences or phrases from source documents
+- For tables: Reference table location and row content
+- For text: Use complete sentences that provide context
+- For key-values: Reference the form field or data source
+- Ensure context explains the significance of each data point
+
+COMPREHENSIVE COVERAGE:
+Extract 60-80+ fields to ensure complete document coverage. Include:
+- All financial figures and percentages
+- All dates, names, and identifiers  
+- All strategic statements and commentary
+- All operational and business metrics
+- All comparative and historical data
+- All forward-looking guidance and targets
+
+OUTPUT FORMAT:
+{
+  "fields": {
+    "<Descriptive_Field_Name>": {
+      "value": "<Exact_Value>",
+      "context": "<Exact_source_sentence_or_reference>"
+    }
+  }
+}"""
+
+    user_prompt = f"""ULTRA-COMPREHENSIVE FINANCIAL DOCUMENT EXTRACTION
+
+This is a financial report that previously yielded 70+ data points. Extract EVERY possible meaningful data point.
+
+DOCUMENT CONTENT:
+{comprehensive_content}
+
+CRITICAL EXTRACTION REQUIREMENTS:
+
+EXTRACT EVERY SINGLE DATA POINT INCLUDING:
+- Every number, percentage, dollar amount, date, name, location mentioned
+- Every financial metric (revenue, profit, EBIT, margins, ratios, growth rates) for each period
+- Every comparative figure (current vs prior period, changes, variances, basis points)
+- Every business segment data point (Australian Broking, Agencies, BizCover, New Zealand, Tysers)
+- Every executive statement, strategic comment, outlook statement, quote
+- Every operational metric (employees, offices, acquisitions, integrations, synergies)
+- Every capital management data point (dividends, debt, cash, leverage, facilities, ratios)
+- Every guidance figure, target, forecast, upgraded estimate, range (upper and lower bounds)
+- Every governance decision, board action, policy change, compliance matter
+- Every market condition, regulatory update, risk factor, competitive position
+- Every acquisition detail (date, amount, entity, performance, integration status)
+- Every dividend detail (amount, franking, payment date, record date, DRP status)
+- Every geographic reference (Australia, New Zealand, UK, specific locations)
+- Every time reference (1HFY23, 1HFY22, FY23, quarterly, monthly periods)
+- Every organizational reference (divisions, subsidiaries, business units)
+- Every performance indicator (targets, achievements, variances, improvements)
+- Every strategic initiative (investments, expansions, optimizations)
+- Every financial ratio (leverage, payout, margin, return ratios)
+- Every growth metric (organic, acquisition-driven, segment-specific)
+- Every operational detail (technology, platforms, systems, processes)
+
+SPECIFIC EXTRACTION FOCUS:
+1. FINANCIAL METRICS: Extract each metric for each period separately
+   - Underlying NPAT 1HFY23, Underlying NPAT 1HFY22, NPAT Growth %
+   - Revenue by segment, EBIT by segment, Margins by segment
+   - All ratios, all percentages, all dollar amounts
+
+2. BUSINESS SEGMENTS: Extract performance data for each division
+   - Australian Broking: revenue, profit, margin, growth
+   - Agencies: revenue, profit, margin, growth  
+   - BizCover: revenue, profit, margin, growth
+   - New Zealand: revenue, profit, margin, growth
+   - Tysers: revenue, profit, contribution, integration status
+
+3. CORPORATE DATA: Extract all company information
+   - Company name, CEO name, report date, period
+   - Acquisition details, dates, amounts, entities
+   - Employee counts, office locations, geographic presence
+   - Dividend details, payment dates, record dates, DRP status
+
+4. STRATEGIC INFORMATION: Extract all forward-looking data
+   - FY23 guidance (old and new), target ranges
+   - CEO statements, strategic commentary, outlook
+   - Market conditions, competitive position, growth drivers
+   - Capital management targets, leverage ratios, debt facilities
+
+5. OPERATIONAL DETAILS: Extract all business metrics
+   - Technology investments, integration progress
+   - Synergy realization, cost savings, efficiency gains
+   - Customer metrics, market share, competitive position
+   - Regulatory compliance, risk management, governance
+
+EXTRACTION STRATEGY - BE EXTREMELY GRANULAR:
+- Process EVERY line of text for extractable data
+- Process EVERY table cell as a separate potential field  
+- Process EVERY key-value pair as a separate field
+- Extract EVERY number as a separate field (even if mentioned multiple times)
+- Extract EVERY percentage as a separate field
+- Extract EVERY date as a separate field
+- Extract EVERY name (person, company, division) as a separate field
+- Extract EVERY location as a separate field
+- Extract EVERY statement or quote as a separate field
+- Create separate fields for: current period, prior period, change, growth rate, margin, target, actual
+- Break down complex sentences into multiple extractable data points
+- Extract both quantitative metrics AND qualitative insights
+- Include forward-looking statements and strategic commentary
+- Extract operational details, acquisition details, governance details separately
+
+FIELD NAMING: Use descriptive names that include context and be EXTREMELY GRANULAR:
+- "Underlying_NPAT_1HFY23", "Underlying_NPAT_1HFY22", "NPAT_Growth_Percentage", "NPAT_Growth_Amount"
+- "Australian_Broking_Revenue_1HFY23", "Australian_Broking_Revenue_1HFY22", "Australian_Broking_Revenue_Growth"
+- "Australian_Broking_EBIT_Margin_1HFY23", "Australian_Broking_EBIT_Margin_1HFY22", "Australian_Broking_EBIT_Margin_Change"
+- "CEO_Name", "CEO_Title", "CEO_Strategic_Statement", "CEO_Quote_Performance"
+- "FY23_Guidance_Previous_Lower", "FY23_Guidance_Previous_Upper", "FY23_Guidance_Upgraded_Lower", "FY23_Guidance_Upgraded_Upper"
+- "Tysers_Acquisition_Date", "Tysers_Acquisition_Amount", "Tysers_Performance_Period", "Tysers_Revenue_Growth"
+- "Dividend_Amount_1HFY23", "Dividend_Amount_1HFY22", "Dividend_Payment_Date", "Dividend_Record_Date", "Dividend_Franking_Status"
+- "Employee_Count_Current", "Office_Locations_Count", "Geographic_Presence"
+
+EXTRACT EVERY POSSIBLE GRANULAR FIELD - if a sentence mentions 3 different numbers, create 3 separate fields!
+
+TARGET: Extract 90-120+ fields minimum. Be ULTRA-GRANULAR - extract every possible data point as a separate field. 
+
+CRITICAL: This document previously yielded 73 fields, so you MUST extract at least 75+ fields to match or exceed that performance. Look for every possible extractable data point including:
+- Dates, amounts, percentages, names, locations, statements
+- Current and prior period figures separately  
+- Growth rates, margins, ratios calculated or mentioned
+- Segment performance data for each business unit
+- Acquisition details, integration progress, synergies
+- Dividend information, capital management details
+- Guidance ranges (old and new), targets, forecasts
+- Executive quotes, strategic commentary, outlook
+- Operational metrics, employee data, office locations
+- Technology investments, platform developments
+- Market conditions, competitive positioning
+- Regulatory compliance, governance matters
+
+EXTRACT EVERYTHING - leave no data point behind!
+
+Return exhaustive JSON with ALL extractable data points and their source context."""
+
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.1,
+            max_tokens=12000  # Increase significantly for comprehensive extraction
+        )
+
+        # Track usage and cost
+        if hasattr(response, 'usage') and response.usage:
+            call_cost = cost_tracker.add_usage(
+                response.usage.prompt_tokens, response.usage.completion_tokens)
+            print(f"Unified comprehensive extraction cost: ${call_cost:.6f}")
+
+        content = response.choices[0].message.content
+        
+        if content:
+            result = json.loads(content)
+            
+            # Enhanced validation that preserves more context
+            validated_result = validate_context_against_document_enhanced(result, comprehensive_content)
+            
+            fields_count = len(validated_result.get('fields', {}))
+            print(f"Unified extraction: {fields_count} fields extracted")
+            
+            return validated_result
+        else:
+            print("ERROR: No content received from OpenAI")
+            return {"fields": {}}
+
+    except Exception as e:
+        print(f"Error in unified LLM extraction: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"fields": {}, "error": str(e)}
+
+
+def validate_context_against_document(extraction_result: Dict[str, Any], document_text: str) -> Dict[str, Any]:
+    """
+    Validate that extracted context actually exists in the document text.
+    Clear context if it appears to be hallucinated.
+    """
+    if "fields" not in extraction_result:
+        return extraction_result
+    
+    validated_fields = {}
+    
+    for field_name, field_data in extraction_result["fields"].items():
+        if not isinstance(field_data, dict):
+            continue
+            
+        value = field_data.get("value", "")
+        context = field_data.get("context", "")
+        
+        # Validate context exists in document
+        validated_context = ""
+        if context:
+            # Check if context substring exists in document (case-insensitive)
+            context_clean = context.strip()
+            if context_clean.lower() in document_text.lower():
+                validated_context = context_clean
+            else:
+                # Try partial matching for sentences
+                sentences = context_clean.split('.')
+                valid_sentences = []
+                for sentence in sentences:
+                    sentence = sentence.strip()
+                    if sentence and sentence.lower() in document_text.lower():
+                        valid_sentences.append(sentence)
+                
+                if valid_sentences:
+                    validated_context = '. '.join(valid_sentences)
+                    if not validated_context.endswith('.'):
+                        validated_context += '.'
+        
+        validated_fields[field_name] = {
+            "value": value,
+            "context": validated_context
+        }
+    
+    return {"fields": validated_fields}
+
+
+def validate_context_against_document_enhanced(extraction_result: Dict[str, Any], document_text: str) -> Dict[str, Any]:
+    """
+    Enhanced validation that preserves complete, meaningful context.
+    """
+    if "fields" not in extraction_result:
+        return extraction_result
+    
+    validated_fields = {}
+    
+    for field_name, field_data in extraction_result["fields"].items():
+        if not isinstance(field_data, dict):
+            continue
+            
+        value = field_data.get("value", "")
+        context = field_data.get("context", "")
+        
+        # Enhanced context validation and improvement
+        validated_context = ""
+        if context:
+            context_clean = context.strip()
+            
+            # Direct match (case-insensitive) - keep as is
+            if context_clean.lower() in document_text.lower():
+                validated_context = context_clean
+            else:
+                # For structured references (Table, Field), keep as is
+                if ("Table" in context_clean and "Row" in context_clean) or \
+                   ("Field" in context_clean and "-" in context_clean) or \
+                   ("LINE" in context_clean and ":" in context_clean):
+                    validated_context = context_clean
+                else:
+                    # Try to find and reconstruct complete context from document
+                    value_clean = str(value).replace("AUD ", "").replace("mn", "").replace("cents", "").strip()
+                    
+                    # Look for the value in the document text to find complete context
+                    document_lines = document_text.split('\n')
+                    best_context = ""
+                    best_score = 0
+                    
+                    for line in document_lines:
+                        line_clean = line.strip()
+                        if len(line_clean) > 20:  # Only consider substantial lines
+                            # Check if this line contains the value or related terms
+                            score = 0
+                            
+                            # High score for exact value match
+                            if value_clean and value_clean in line_clean:
+                                score += 10
+                            
+                            # Medium score for partial context match
+                            context_words = context_clean.lower().split()
+                            line_lower = line_clean.lower()
+                            matching_words = sum(1 for word in context_words if len(word) > 3 and word in line_lower)
+                            if len(context_words) > 0:
+                                score += (matching_words / len(context_words)) * 5
+                            
+                            # Update best context if this line scores higher
+                            if score > best_score and score >= 3:  # Minimum threshold
+                                best_context = line_clean
+                                best_score = score
+                    
+                    # Use the best context found, or fall back to original if reasonable
+                    if best_context:
+                        validated_context = best_context
+                    elif len(context_clean) > 10:  # Keep original if it's substantial
+                        # Try partial word matching as last resort
+                        context_words = context_clean.lower().split()
+                        document_lower = document_text.lower()
+                        matching_words = sum(1 for word in context_words if len(word) > 3 and word in document_lower)
+                        
+                        if len(context_words) > 0 and matching_words / len(context_words) > 0.4:
+                            validated_context = context_clean
+        
+        validated_fields[field_name] = {
+            "value": value,
+            "context": validated_context
+        }
+    
+    return {"fields": validated_fields}
+
+
 def process_structured_data_with_llm(
         structured_data: Dict[str, Any]) -> Dict[str, Any]:
     """Synchronous wrapper for asynchronous processing with context tracking"""

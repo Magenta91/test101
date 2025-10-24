@@ -11,8 +11,11 @@ load_dotenv()
 
 from textract_processor import extract_text_from_pdf, extract_text_from_pdf_bytes, extract_structured_data_from_pdf_bytes
 from llm_processor import process_text_with_llm
-from structured_llm_processor import process_structured_data_with_llm
+from structured_llm_processor import process_structured_data_with_llm, process_structured_data_with_llm_unified
 from export_utils import export_to_pdf
+
+# Configurable flag for unified context extraction
+USE_UNIFIED_CONTEXT_EXTRACTION = True  # Set False to keep legacy context tracker
 
 app = Flask(__name__)
 
@@ -81,6 +84,43 @@ Instructions:
     except Exception as e:
         print(f"Error summarizing commentary: {e}")
         return text[:200] + '...' if len(text) > 200 else text
+
+def convert_unified_to_standard_format(unified_result: dict, original_data: dict) -> dict:
+    """
+    Convert unified extraction result to standard format for compatibility.
+    
+    Args:
+        unified_result: Result from process_structured_data_with_llm_unified
+        original_data: Original structured data for fallback
+        
+    Returns:
+        Result in standard format with enhanced_data_with_context
+    """
+    enhanced_data = []
+    
+    if "fields" in unified_result:
+        for field_name, field_data in unified_result["fields"].items():
+            if isinstance(field_data, dict):
+                enhanced_data.append({
+                    'source': 'Unified Extraction',
+                    'type': 'Financial Data',
+                    'field': field_name,
+                    'value': field_data.get('value', ''),
+                    'page': 'N/A',
+                    'context': field_data.get('context', ''),
+                    'has_context': bool(field_data.get('context', '').strip())
+                })
+    
+    # Add cost summary from global tracker
+    from structured_llm_processor import cost_tracker
+    cost_summary = cost_tracker.get_summary()
+    
+    return {
+        'enhanced_data_with_context': enhanced_data,
+        'cost_summary': cost_summary,
+        'processing_mode': 'unified_extraction'
+    }
+
 
 def clean_csv_value(value):
     """Clean value for CSV format - escape commas and quotes"""
@@ -339,8 +379,16 @@ def process_stream():
     
     def generate():
         try:
-            # Process the structured JSON data 
-            result = process_structured_data_with_llm(data)
+            # Process the structured JSON data using unified or legacy mode
+            if USE_UNIFIED_CONTEXT_EXTRACTION:
+                # Pass full structured data for comprehensive unified processing
+                unified_result = process_structured_data_with_llm_unified(data)
+                
+                # Convert unified result to standard format
+                result = convert_unified_to_standard_format(unified_result, data)
+            else:
+                # Use legacy processing
+                result = process_structured_data_with_llm(data)
             
             # Initialize CSV-like output for XLSX format
             csv_output = []
@@ -362,6 +410,13 @@ def process_stream():
                     csv_output.append(csv_row)
                     yield f"data: {json.dumps({'type': 'row', 'content': csv_row})}\n\n"
                     row_counter += 1
+            elif USE_UNIFIED_CONTEXT_EXTRACTION:
+                # In unified mode with no extracted data, add a message explaining why
+                print("Unified mode extracted no data - likely insufficient content")
+                message_row = f"row{row_counter}: Unified Extraction,Information,No Data Extracted,No meaningful data found in document,N/A,The document appears to contain insufficient content for data extraction. Please ensure the document contains financial data tables or structured information."
+                csv_output.append(message_row)
+                yield f"data: {json.dumps({'type': 'row', 'content': message_row})}\n\n"
+                row_counter += 1
             else:
                 # Fallback to original processing if enhanced data is not available
                 # Process tables with enhanced financial data extraction
@@ -623,8 +678,16 @@ def process():
     try:
         import pandas as pd
         
-        # Process the structured JSON data with separate LLM calls and commentary matching
-        result = process_structured_data_with_llm(data)
+        # Process the structured JSON data using unified or legacy mode
+        if USE_UNIFIED_CONTEXT_EXTRACTION:
+            # Pass full structured data for comprehensive unified processing
+            unified_result = process_structured_data_with_llm_unified(data)
+            
+            # Convert unified result to standard format
+            result = convert_unified_to_standard_format(unified_result, data)
+        else:
+            # Use legacy processing with separate LLM calls and commentary matching
+            result = process_structured_data_with_llm(data)
         
         # Use the enhanced data with context if available
         if 'enhanced_data_with_context' in result and result['enhanced_data_with_context']:
