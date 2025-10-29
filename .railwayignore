@@ -1,0 +1,52 @@
+# Railway Production Ignore
+# Exclude development and testing files
+
+# Development files
+*.pyc
+__pycache__/
+.pytest_cache/
+.coverage
+.env.local
+.env.development
+.env.test
+
+# Testing files
+test_*.py
+*_test.py
+tests/
+debug_*.py
+check_*.py
+
+# Documentation (keep only README.md)
+*.md
+!README.md
+
+# Development tools
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Sample files
+*.pdf
+*.xlsx
+AUB_*.pdf
+extracted_data_*.xlsx
+
+# Git files
+.git/
+.gitignore
+
+# Backup files
+*.bak
+*.tmp
+*~
+
+# PythonAnywhere specific files
+wsgi_*.py
+*pythonanywhere*
+DEPLOYMENT_CHECKLIST.md
+setup_venv.py
+
+# Large dependencies (let Railway handle)
+Downloads/
