@@ -1,0 +1,14 @@
+[phases.setup]
+nixPkgs = ["python310", "tesseract"]
+
+[phases.install]
+cmds = [
+    "pip install --upgrade pip",
+    "pip install -r requirements-railway.txt"
+]
+
+[phases.build]
+cmds = ["echo 'Build phase complete'"]
+
+[start]
+cmd = "gunicorn --bind 0.0.0.0:$PORT app:app --timeout 120 --workers 1"

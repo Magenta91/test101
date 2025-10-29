@@ -1,0 +1,45 @@
+# Railway Ignore File
+# Files and directories to exclude from Railway deployment
+
+# Development files
+*.pyc
+__pycache__/
+.pytest_cache/
+.coverage
+.env.local
+.env.development
+
+# PythonAnywhere specific files
+wsgi_pythonanywhere.py
+magenta91_pythonanywhere_com_wsgi.py
+pythonanywhere_install.sh
+DEPLOYMENT_CHECKLIST.md
+setup_venv.py
+
+# Git and IDE files
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Documentation (optional - remove if you want docs deployed)
+*.md
+!README.md
+
+# Test files
+test_*.py
+*_test.py
+tests/
+
+# Large sample files (optional)
+*.pdf
+*.xlsx
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.tmp
+*~
