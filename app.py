@@ -76,8 +76,45 @@ def detailed_status():
     
     return jsonify(status)
 
+@app.route('/test-processing')
+def test_processing():
+    """Test the PDF processing pipeline without file upload"""
+    if not MODULES_LOADED:
+        return jsonify({
+            'status': 'error',
+            'message': 'Modules not loaded'
+        }), 500
+    
+    try:
+        # Test imports
+        from textract_processor import TextractProcessor
+        from tesseract_processor import TesseractProcessor
+        
+        # Test processor initialization
+        textract = TextractProcessor()
+        tesseract = TesseractProcessor()
+        
+        return jsonify({
+            'status': 'success',
+            'textract_available': textract.aws_available if hasattr(textract, 'aws_available') else False,
+            'tesseract_available': tesseract.available if hasattr(tesseract, 'available') else False,
+            'message': 'PDF processing pipeline ready'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Processing pipeline error: {str(e)}'
+        }), 500
+
 @app.route('/extract', methods=['POST'])
 def extract():
+    # Check if modules are loaded
+    if not MODULES_LOADED:
+        return jsonify({
+            'error': 'Required modules not loaded. Please check server configuration.',
+            'details': 'PDF processing modules failed to initialize'
+        }), 500
+    
     if 'pdf' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
     
@@ -86,14 +123,27 @@ def extract():
         return jsonify({'error': 'No file selected'}), 400
     
     try:
-        # Extract structured data from PDF using Amazon Textract
+        print(f"📄 Processing PDF: {file.filename}")
+        
+        # Extract structured data from PDF
         pdf_bytes = file.read()
+        print(f"📊 PDF size: {len(pdf_bytes)} bytes")
+        
         structured_data = extract_structured_data_from_pdf_bytes(pdf_bytes)
+        
+        print(f"✅ PDF processing completed successfully")
         
         # Return the new JSON format
         return jsonify(structured_data)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"❌ PDF processing error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        return jsonify({
+            'error': f'PDF processing failed: {str(e)}',
+            'details': 'Check server logs for more information'
+        }), 500
 
 def summarize_commentary(text):
     """Summarize long commentary using GPT-4o"""

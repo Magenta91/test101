@@ -10,9 +10,28 @@ load_dotenv()
 class TextractProcessor:
     def __init__(self):
         """Initialize AWS Textract and S3 clients with credentials from environment"""
-        self.textract_client = boto3.client('textract')
-        self.s3_client = boto3.client('s3')
-        self.bucket_name = 'textract-bucket-lk'
+        import os
+        
+        # Check if AWS credentials are available
+        self.aws_available = bool(
+            os.environ.get('AWS_ACCESS_KEY_ID') and 
+            os.environ.get('AWS_SECRET_ACCESS_KEY')
+        )
+        
+        if self.aws_available:
+            try:
+                self.textract_client = boto3.client('textract')
+                self.s3_client = boto3.client('s3')
+                self.bucket_name = 'textract-bucket-lk'
+                print("✅ AWS Textract initialized successfully")
+            except Exception as e:
+                print(f"⚠️ AWS Textract initialization failed: {e}")
+                self.aws_available = False
+        else:
+            print("⚠️ AWS credentials not found - Textract disabled")
+            self.textract_client = None
+            self.s3_client = None
+            self.bucket_name = None
 
     def extract_text_from_pdf_bytes(self, pdf_bytes: bytes) -> Dict[str, Any]:
         """
@@ -26,15 +45,15 @@ class TextractProcessor:
         """
         start_time = time.time()
         
-        # Check if Textract should be disabled or AWS credentials are missing
+        # Check if Textract should be disabled or AWS is not available
         import os
         disable_textract = os.environ.get('DISABLE_TEXTRACT', 'false').lower() == 'true'
         
-        if disable_textract or not os.environ.get('AWS_ACCESS_KEY_ID') or not os.environ.get('AWS_SECRET_ACCESS_KEY'):
+        if disable_textract or not self.aws_available:
             if disable_textract:
                 print("⚠️ Textract disabled via DISABLE_TEXTRACT=true, using Tesseract OCR directly")
             else:
-                print("⚠️ AWS credentials not configured, skipping Textract and using Tesseract OCR directly")
+                print("⚠️ AWS not available, using Tesseract OCR directly")
             # Skip to Tesseract fallback
             try:
                 from tesseract_processor import TesseractProcessor
