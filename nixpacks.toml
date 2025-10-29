@@ -1,14 +1,22 @@
 [phases.setup]
-nixPkgs = ["python310", "tesseract"]
+nixPkgs = ["python310", "tesseract", "leptonica", "pkg-config"]
 
 [phases.install]
 cmds = [
     "pip install --upgrade pip",
-    "pip install -r requirements-railway.txt"
+    "pip install -r requirements.txt"
 ]
 
 [phases.build]
-cmds = ["echo 'Build phase complete'"]
+cmds = [
+    "echo 'Setting up Tesseract...'",
+    "which tesseract || echo 'Tesseract not found in PATH'",
+    "tesseract --version || echo 'Tesseract version check failed'",
+    "echo 'TESSDATA_PREFIX will be set to: /nix/store/*/share/tessdata'"
+]
 
 [start]
 cmd = "gunicorn --bind 0.0.0.0:$PORT app:app --timeout 120 --workers 1"
+
+[variables]
+TESSDATA_PREFIX = "/nix/store/*/share/tessdata"

@@ -12,9 +12,49 @@ load_dotenv()
 class TesseractProcessor:
     def __init__(self):
         """Initialize Tesseract processor"""
-        # You may need to set the tesseract path on Windows
-        # pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-        pass
+        # Set Tesseract path for different environments
+        import platform
+        import shutil
+        
+        # Check if tesseract is in PATH
+        tesseract_path = shutil.which('tesseract')
+        
+        if tesseract_path:
+            print(f"✅ Tesseract found at: {tesseract_path}")
+            pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        elif platform.system() == "Windows":
+            # Windows path
+            pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+        else:
+            # Try common Linux paths
+            possible_paths = [
+                '/usr/bin/tesseract',
+                '/usr/local/bin/tesseract',
+                '/opt/homebrew/bin/tesseract'  # macOS with Homebrew
+            ]
+            
+            for path in possible_paths:
+                if os.path.exists(path):
+                    pytesseract.pytesseract.tesseract_cmd = path
+                    print(f"✅ Tesseract found at: {path}")
+                    break
+            else:
+                print("⚠️ Tesseract not found in common paths")
+        
+        # Set TESSDATA_PREFIX if not set
+        if not os.environ.get('TESSDATA_PREFIX'):
+            possible_tessdata = [
+                '/usr/share/tesseract-ocr/5/tessdata/',
+                '/usr/share/tesseract-ocr/4.00/tessdata/',
+                '/usr/share/tessdata/',
+                '/opt/homebrew/share/tessdata/'
+            ]
+            
+            for tessdata_path in possible_tessdata:
+                if os.path.exists(tessdata_path):
+                    os.environ['TESSDATA_PREFIX'] = tessdata_path
+                    print(f"✅ TESSDATA_PREFIX set to: {tessdata_path}")
+                    break
 
     def extract_text_from_pdf_bytes(self, pdf_bytes: bytes) -> Dict[str, Any]:
         """

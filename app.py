@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, send_file, Response
 import os
+import sys
 import tempfile
 import base64
 import json
@@ -26,6 +27,27 @@ os.makedirs('static', exist_ok=True)
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint for Railway"""
+    import shutil
+    
+    status = {
+        'status': 'healthy',
+        'tesseract_available': bool(shutil.which('tesseract')),
+        'python_version': f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    }
+    
+    # Check if we can import required modules
+    try:
+        import openai, boto3, pandas, fitz
+        status['modules_ok'] = True
+    except ImportError as e:
+        status['modules_ok'] = False
+        status['import_error'] = str(e)
+    
+    return jsonify(status)
 
 @app.route('/extract', methods=['POST'])
 def extract():
@@ -885,7 +907,3 @@ def export_pdf():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-if __name_
-_ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
