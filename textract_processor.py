@@ -26,6 +26,44 @@ class TextractProcessor:
         """
         start_time = time.time()
         
+        # Check if Textract should be disabled or AWS credentials are missing
+        import os
+        disable_textract = os.environ.get('DISABLE_TEXTRACT', 'false').lower() == 'true'
+        
+        if disable_textract or not os.environ.get('AWS_ACCESS_KEY_ID') or not os.environ.get('AWS_SECRET_ACCESS_KEY'):
+            if disable_textract:
+                print("⚠️ Textract disabled via DISABLE_TEXTRACT=true, using Tesseract OCR directly")
+            else:
+                print("⚠️ AWS credentials not configured, skipping Textract and using Tesseract OCR directly")
+            # Skip to Tesseract fallback
+            try:
+                from tesseract_processor import TesseractProcessor
+                tesseract = TesseractProcessor()
+                result = tesseract.extract_text_from_pdf_bytes(pdf_bytes)
+                result["extraction_method"] = "Tesseract OCR (Direct - No AWS)"
+                
+                # Ensure full_text is available for context tracking
+                if "document_text" in result and result["document_text"]:
+                    result["full_text"] = " ".join(result["document_text"])
+                else:
+                    result["full_text"] = ""
+                
+                return result
+            except Exception as tesseract_error:
+                print(f"Tesseract OCR failed: {tesseract_error}")
+                error_text = f"Error: No AWS credentials and Tesseract failed. Tesseract: {str(tesseract_error)}"
+                return {
+                    "document_text": [error_text],
+                    "tables": [],
+                    "key_values": [],
+                    "footnotes": [],
+                    "footnote_markers": {},
+                    "enhanced_text": [],
+                    "full_text": error_text,
+                    "extraction_method": "Failed",
+                    "tesseract_error": str(tesseract_error)
+                }
+        
         try:
             print("Using Amazon Textract with S3 storage for PDF processing")
             

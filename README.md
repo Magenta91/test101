@@ -25,14 +25,26 @@
 
 Set these in Railway dashboard:
 
+### **Required:**
+```env
+OPENAI_API_KEY=your_openai_api_key
+FLASK_ENV=production
+```
+
+### **Optional (for AWS Textract):**
 ```env
 AWS_ACCESS_KEY_ID=your_aws_access_key
 AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-OPENAI_API_KEY=your_openai_api_key
 S3_BUCKET_NAME=your_s3_bucket_name
 AWS_REGION=us-east-1
-FLASK_ENV=production
 ```
+
+### **Optional (to disable Textract):**
+```env
+DISABLE_TEXTRACT=true
+```
+
+**Note:** If AWS credentials are not provided, the app will automatically use Tesseract OCR only.
 
 ## 🏗️ Architecture
 
