@@ -1,7 +1,15 @@
-import pytesseract
+# Import pytesseract with error handling
+try:
+    import pytesseract
+    PYTESSERACT_AVAILABLE = True
+except ImportError:
+    PYTESSERACT_AVAILABLE = False
+    print("⚠️ pytesseract not available - Tesseract OCR will be disabled")
+
 import fitz  # PyMuPDF
 from PIL import Image
 import io
+import os
 import time
 from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv
@@ -12,6 +20,12 @@ load_dotenv()
 class TesseractProcessor:
     def __init__(self):
         """Initialize Tesseract processor"""
+        self.available = PYTESSERACT_AVAILABLE
+        
+        if not self.available:
+            print("❌ TesseractProcessor: pytesseract module not available")
+            return
+            
         # Set Tesseract path for different environments
         import platform
         import shutil
@@ -67,6 +81,17 @@ class TesseractProcessor:
             Dict[str, Any]: Structured JSON with document_text, tables, and key_values
         """
         start_time = time.time()
+        
+        # Check if pytesseract is available
+        if not self.available:
+            return {
+                'document_text': [],
+                'tables': [],
+                'key_values': [],
+                'footnotes': [],
+                'processing_time': time.time() - start_time,
+                'error': 'pytesseract module not available'
+            }
         
         try:
             print("Using Tesseract OCR for PDF processing (fallback mode)")

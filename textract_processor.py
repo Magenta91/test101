@@ -425,8 +425,9 @@ def extract_structured_data_from_pdf_bytes(pdf_bytes: bytes) -> Dict[str, Any]:
         
         try:
             # Fallback to Tesseract OCR
-            from tesseract_processor import extract_structured_data_from_pdf_bytes_tesseract
-            result = extract_structured_data_from_pdf_bytes_tesseract(pdf_bytes)
+            from tesseract_processor import TesseractProcessor
+            tesseract = TesseractProcessor()
+            result = tesseract.extract_text_from_pdf_bytes(pdf_bytes)
             result["extraction_method"] = "Tesseract OCR (Fallback)"
             result["textract_error"] = str(textract_error)
             
@@ -468,3 +469,35 @@ def extract_text_from_pdf(pdf_path: str) -> str:
     with open(pdf_path, 'rb') as file:
         pdf_bytes = file.read()
     return extract_text_from_pdf_bytes(pdf_bytes)
+
+def extract_text_from_pdf_bytes(pdf_bytes: bytes) -> str:
+    """
+    Extract raw text from PDF bytes using Amazon Textract.
+    
+    Args:
+        pdf_bytes (bytes): PDF file as bytes
+        
+    Returns:
+        str: Raw extracted text from the PDF
+    """
+    processor = TextractProcessor()
+    result = processor.extract_text_from_pdf_bytes(pdf_bytes)
+    
+    if "document_text" in result and result["document_text"]:
+        return " ".join(result["document_text"])
+    else:
+        return result.get("full_text", "")
+
+
+def extract_structured_data_from_pdf_bytes(pdf_bytes: bytes) -> Dict[str, Any]:
+    """
+    Extract structured data from PDF bytes using Amazon Textract with Tesseract fallback.
+    
+    Args:
+        pdf_bytes (bytes): PDF file as bytes
+        
+    Returns:
+        Dict[str, Any]: Structured JSON with document_text, tables, and key_values
+    """
+    processor = TextractProcessor()
+    return processor.extract_text_from_pdf_bytes(pdf_bytes)

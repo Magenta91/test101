@@ -19,6 +19,9 @@ openai==1.51.0
 # PDF Processing
 PyMuPDF==1.23.0
 
+# OCR Processing
+pytesseract==0.3.10
+
 # Image Processing
 Pillow==10.1.0
 
