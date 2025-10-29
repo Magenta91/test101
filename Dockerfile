@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     libtesseract-dev \
     libleptonica-dev \
     pkg-config \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set Tesseract data path
@@ -26,5 +27,13 @@ COPY . .
 # Expose port
 EXPOSE $PORT
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:$PORT/health || exit 1
+
+# Copy startup script
+COPY start.sh .
+RUN chmod +x start.sh
+
 # Start command
-CMD gunicorn --bind 0.0.0.0:$PORT app:app --timeout 120 --workers 1
+CMD ["./start.sh"]

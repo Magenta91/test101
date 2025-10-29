@@ -10,10 +10,17 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-from textract_processor import extract_text_from_pdf, extract_text_from_pdf_bytes, extract_structured_data_from_pdf_bytes
-from llm_processor import process_text_with_llm
-from structured_llm_processor import process_structured_data_with_llm, process_structured_data_with_llm_unified
-from export_utils import export_to_pdf
+# Import modules lazily to avoid startup failures
+try:
+    from textract_processor import extract_text_from_pdf, extract_text_from_pdf_bytes, extract_structured_data_from_pdf_bytes
+    from llm_processor import process_text_with_llm
+    from structured_llm_processor import process_structured_data_with_llm, process_structured_data_with_llm_unified
+    from export_utils import export_to_pdf
+    MODULES_LOADED = True
+    print("✅ All modules loaded successfully")
+except ImportError as e:
+    print(f"⚠️ Module import error: {e}")
+    MODULES_LOADED = False
 
 # Configurable flag for unified context extraction
 USE_UNIFIED_CONTEXT_EXTRACTION = True  # Set False to keep legacy context tracker
@@ -30,22 +37,42 @@ def index():
 
 @app.route('/health')
 def health_check():
-    """Health check endpoint for Railway"""
+    """Simple health check endpoint for Railway"""
+    try:
+        return jsonify({
+            'status': 'healthy',
+            'message': 'PDF Extraction Service is running',
+            'modules_loaded': MODULES_LOADED
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/status')
+def detailed_status():
+    """Detailed status check with module verification"""
     import shutil
     
     status = {
         'status': 'healthy',
         'tesseract_available': bool(shutil.which('tesseract')),
-        'python_version': f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        'python_version': f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+        'modules_loaded': MODULES_LOADED
     }
     
     # Check if we can import required modules
-    try:
-        import openai, boto3, pandas, fitz
-        status['modules_ok'] = True
-    except ImportError as e:
+    if MODULES_LOADED:
+        try:
+            import openai, boto3, pandas, fitz
+            status['modules_ok'] = True
+        except ImportError as e:
+            status['modules_ok'] = False
+            status['import_error'] = str(e)
+    else:
         status['modules_ok'] = False
-        status['import_error'] = str(e)
+        status['import_error'] = 'Modules not loaded at startup'
     
     return jsonify(status)
 
@@ -907,3 +934,13 @@ def export_pdf():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+if __name
+__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    
+    print(f"🚀 Starting PDF Extraction Service on port {port}")
+    print(f"📊 Modules loaded: {MODULES_LOADED}")
+    print(f"🔧 Debug mode: {debug}")
+    
+    app.run(host='0.0.0.0', port=port, debug=debug)
