@@ -26,6 +26,9 @@ except ImportError as e:
     print(f'❌ Module import error: {e}')
 "
 
+# Set default port if not provided
+export PORT=${PORT:-8080}
+
 # Start the application
-echo "🌐 Starting Gunicorn server..."
+echo "🌐 Starting Gunicorn server on port $PORT..."
 exec gunicorn --bind 0.0.0.0:$PORT app:app --timeout 120 --workers 1 --preload --log-level info --access-logfile - --error-logfile -
