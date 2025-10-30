@@ -12,11 +12,11 @@ class TextractProcessor:
         """Initialize AWS Textract and S3 clients with credentials from environment"""
         import os
         
-        # Check if AWS credentials are available
-        self.aws_available = bool(
-            os.environ.get('AWS_ACCESS_KEY_ID') and 
-            os.environ.get('AWS_SECRET_ACCESS_KEY')
-        )
+        # Check if AWS credentials are available and not empty
+        aws_key = os.environ.get('AWS_ACCESS_KEY_ID', '').strip()
+        aws_secret = os.environ.get('AWS_SECRET_ACCESS_KEY', '').strip()
+        
+        self.aws_available = bool(aws_key and aws_secret and len(aws_key) > 10 and len(aws_secret) > 10)
         
         if self.aws_available:
             try:
@@ -49,11 +49,16 @@ class TextractProcessor:
         import os
         disable_textract = os.environ.get('DISABLE_TEXTRACT', 'false').lower() == 'true'
         
-        if disable_textract or not self.aws_available:
+        # Debug AWS status
+        print(f"🔍 AWS Debug - aws_available: {self.aws_available}, disable_textract: {disable_textract}")
+        print(f"🔍 AWS Key exists: {bool(os.environ.get('AWS_ACCESS_KEY_ID'))}")
+        print(f"🔍 AWS Secret exists: {bool(os.environ.get('AWS_SECRET_ACCESS_KEY'))}")
+        
+        if disable_textract or not self.aws_available or not self.textract_client:
             if disable_textract:
                 print("⚠️ Textract disabled via DISABLE_TEXTRACT=true, using Tesseract OCR directly")
             else:
-                print("⚠️ AWS not available, using Tesseract OCR directly")
+                print("⚠️ AWS not available or clients not initialized, using Tesseract OCR directly")
             # Skip to Tesseract fallback
             try:
                 from tesseract_processor import TesseractProcessor
@@ -71,6 +76,36 @@ class TextractProcessor:
             except Exception as tesseract_error:
                 print(f"Tesseract OCR failed: {tesseract_error}")
                 error_text = f"Error: No AWS credentials and Tesseract failed. Tesseract: {str(tesseract_error)}"
+                return {
+                    "document_text": [error_text],
+                    "tables": [],
+                    "key_values": [],
+                    "footnotes": [],
+                    "footnote_markers": {},
+                    "enhanced_text": [],
+                    "full_text": error_text,
+                    "extraction_method": "Failed",
+                    "tesseract_error": str(tesseract_error)
+                }
+        
+        # Final safety check before AWS operations
+        if not self.aws_available or not self.s3_client or not self.textract_client:
+            print("❌ AWS clients not available, forcing Tesseract fallback")
+            try:
+                from tesseract_processor import TesseractProcessor
+                tesseract = TesseractProcessor()
+                result = tesseract.extract_text_from_pdf_bytes(pdf_bytes)
+                result["extraction_method"] = "Tesseract OCR (Forced Fallback)"
+                
+                if "document_text" in result and result["document_text"]:
+                    result["full_text"] = " ".join(result["document_text"])
+                else:
+                    result["full_text"] = ""
+                
+                return result
+            except Exception as tesseract_error:
+                print(f"Tesseract OCR failed: {tesseract_error}")
+                error_text = f"Error: AWS unavailable and Tesseract failed. Tesseract: {str(tesseract_error)}"
                 return {
                     "document_text": [error_text],
                     "tables": [],

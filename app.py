@@ -129,7 +129,15 @@ def extract():
         pdf_bytes = file.read()
         print(f"📊 PDF size: {len(pdf_bytes)} bytes")
         
-        structured_data = extract_structured_data_from_pdf_bytes(pdf_bytes)
+        # Check if simple mode is enabled
+        use_simple_mode = os.environ.get('USE_SIMPLE_PROCESSOR', 'false').lower() == 'true'
+        
+        if use_simple_mode:
+            print("🔧 Using simple Tesseract-only processor")
+            from simple_processor import extract_structured_data_from_pdf_bytes_simple
+            structured_data = extract_structured_data_from_pdf_bytes_simple(pdf_bytes)
+        else:
+            structured_data = extract_structured_data_from_pdf_bytes(pdf_bytes)
         
         print(f"✅ PDF processing completed successfully")
         
