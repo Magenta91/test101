@@ -129,10 +129,15 @@ def extract():
         pdf_bytes = file.read()
         print(f"📊 PDF size: {len(pdf_bytes)} bytes")
         
-        # Check if simple mode is enabled
+        # Check processing mode
         use_simple_mode = os.environ.get('USE_SIMPLE_PROCESSOR', 'false').lower() == 'true'
+        use_minimal_mode = os.environ.get('USE_MINIMAL_PROCESSOR', 'false').lower() == 'true'
         
-        if use_simple_mode:
+        if use_minimal_mode:
+            print("🔧 Using minimal text-only processor (no OCR)")
+            from minimal_processor import extract_text_minimal
+            structured_data = extract_text_minimal(pdf_bytes)
+        elif use_simple_mode:
             print("🔧 Using simple Tesseract-only processor")
             from simple_processor import extract_structured_data_from_pdf_bytes_simple
             structured_data = extract_structured_data_from_pdf_bytes_simple(pdf_bytes)

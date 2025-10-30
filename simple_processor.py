@@ -29,6 +29,16 @@ def extract_structured_data_from_pdf_bytes_simple(pdf_bytes: bytes) -> Dict[str,
         return result
     except Exception as e:
         print(f"❌ Simple processing failed: {e}")
+        
+        # If Tesseract fails due to library issues, try minimal extraction
+        if "libcrypt" in str(e) or "shared object" in str(e):
+            print("🔄 Tesseract has library issues, trying minimal text extraction...")
+            try:
+                from minimal_processor import extract_text_minimal
+                return extract_text_minimal(pdf_bytes)
+            except Exception as minimal_error:
+                print(f"❌ Minimal extraction also failed: {minimal_error}")
+        
         error_text = f"Error: Simple Tesseract processing failed: {str(e)}"
         return {
             "document_text": [error_text],
