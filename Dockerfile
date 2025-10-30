@@ -20,10 +20,6 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create symlinks for python
-RUN ln -s /usr/bin/python3.10 /usr/bin/python
-RUN ln -s /usr/bin/pip3 /usr/bin/pip
-
 # Set Tesseract data path
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata/
 
@@ -32,8 +28,8 @@ WORKDIR /app
 
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python3 -m pip install --no-cache-dir --upgrade pip
+RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
@@ -42,4 +38,4 @@ COPY . .
 ENV PORT=8080
 
 # Start command
-CMD gunicorn --bind 0.0.0.0:$PORT app:app --timeout 120 --workers 1 --preload --log-level info
+CMD python3 -m gunicorn --bind 0.0.0.0:$PORT app:app --timeout 120 --workers 1 --preload --log-level info
