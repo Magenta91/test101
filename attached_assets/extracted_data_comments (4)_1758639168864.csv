@@ -1,0 +1,198 @@
+row1: source,type,field,value,page,context
+row2: Table 1,Table Data,1HFY23 Underlying NPAT,AUD 46.7mn,1,
+row3: Table 1,Table Data,1HFY22 Underlying NPAT,AUD 30.6mn,1,
+row4: Table 1,Table Data,1HFY23 Underlying EPS,48.18 cents per share,1,
+row5: Table 1,Table Data,1HFY22 Underlying EPS,40.30 cents per share,1,
+row6: Table 1,Table Data,1HFY23 Reported NPAT,AUD 0.4mn,1,
+row7: Table 1,Table Data,1HFY22 Reported NPAT,AUD 29.7mn,1,
+row8: Table 1,Table Data,1HFY23 Interim Dividend,17.0 cents per share,1,
+row9: Table 1,Table Data,1HFY22 Interim Dividend,17.0 cents per share,1,
+row10: Table 1,Table Data,Tysers First-time Inclusion,3 months in 1HFY23,1,
+row11: Table 1,Table Data,FY23 Upgraded Underlying NPAT Guidance,AUD 112.9mn - AUD 121.4mn,1,
+row12: Table 1,Table Data,Tysers Profit Contribution (FY23),9 months from 1 October 2022,1,
+row13: Key-Value Pairs,Structured Data,Underlying_NPAT_1HFY23,AUD 46.7mn,N/A,
+row14: Key-Value Pairs,Structured Data,Underlying_NPAT_1HFY22,AUD 30.6mn,N/A,
+row15: Key-Value Pairs,Structured Data,FY23_Underlying_NPAT_Guidance,AUD 112.9mn - AUD 121.4mn,N/A,
+row16: Key-Value Pairs,Structured Data,Tysers_Profit_Start_Date,1 October 2022,N/A,
+row17: Key-Value Pairs,Structured Data,Fully_Franked_Interim_Dividend,17.0 cents per share,N/A,
+row18: Key-Value Pairs,Structured Data,Dividend_Payment_Date,4 April 2023,N/A,
+row19: Key-Value Pairs,Structured Data,Dividend_Record_Date,2 March 2023,N/A,
+row20: Key-Value Pairs,Structured Data,FY23_Dividend_Payout_Ratio,50% to 70%,N/A,
+row21: Key-Value Pairs,Structured Data,Dividend_Reinvestment_Plan_Status,Suspended,N/A,
+row22: Key-Value Pairs,Structured Data,Underlying_Earnings_Per_Share_1HFY23,48.18 cents per share,N/A,
+row23: Key-Value Pairs,Structured Data,Underlying_Earnings_Per_Share_1HFY22,40.30 cents per share,N/A,
+row24: Key-Value Pairs,Structured Data,Reported_NPAT_1HFY23,AUD 0.4mn,N/A,
+row25: Key-Value Pairs,Structured Data,Reported_NPAT_1HFY22,AUD 29.7mn,N/A,
+row26: Key-Value Pairs,Structured Data,New_Zealand_Pre_Tax_Profit_1HFY23,AUD 4.8mn,N/A,
+row27: Key-Value Pairs,Structured Data,New_Zealand_Pre_Tax_Profit_1HFY22,AUD 3.5mn,N/A,
+row28: Key-Value Pairs,Structured Data,New_Zealand_Technology_Investment_Cost_1HFY23,AUD 3.4mn,N/A,
+row29: Key-Value Pairs,Structured Data,New_Zealand_Technology_Investment_Cost_1HFY22,AUD 2.2mn,N/A,
+row30: Key-Value Pairs,Structured Data,Agencies_Pre_Tax_Profit_1HFY23,AUD 12.3mn,N/A,
+row31: Key-Value Pairs,Structured Data,Agencies_Pre_Tax_Profit_1HFY22,AUD 8.9mn,N/A,
+row32: Key-Value Pairs,Structured Data,Agencies_EBIT_Margin,31.6%,N/A,
+row33: Key-Value Pairs,Structured Data,EBIT_Margin_Expansion_400bps,Yes,N/A,
+row34: Key-Value Pairs,Structured Data,BizCover_Pre_Tax_Profit_1HFY23,AUD 5.7mn,N/A,
+row35: Key-Value Pairs,Structured Data,BizCover_Pre_Tax_Profit_1HFY22,AUD 4.9mn,N/A,
+row36: Key-Value Pairs,Structured Data,BizCover_EBIT_Margin_1HFY23,38.4%,N/A,
+row37: Key-Value Pairs,Structured Data,EBIT_Margin_Expansion_140bps,Yes,N/A,
+row38: Key-Value Pairs,Structured Data,Australian_Broking_Pre_Tax_Profit_1HFY23,AUD 49.9mn,N/A,
+row39: Key-Value Pairs,Structured Data,Australian_Broking_Pre_Tax_Profit_1HFY22,AUD 38.3mn,N/A,
+row40: Key-Value Pairs,Structured Data,Australian_Broking_EBIT_Margin_1HFY23,35.2%,N/A,
+row41: Key-Value Pairs,Structured Data,EBIT_Margin_Expansion_410bps,Yes,N/A,
+row42: Key-Value Pairs,Structured Data,Capital_Management_Leverage_Ratio,2.74,N/A,
+row43: Key-Value Pairs,Structured Data,Cash_and_Undrawn_Facilities,AUD 50.3mn,N/A,
+row44: Key-Value Pairs,Structured Data,Leverage_Ratio_Date,31 December 2022,N/A,
+row45: Text Chunk 1,Financial Data,Company_Name,1UB Group,N/A,
+row46: Text Chunk 1,Financial Data,Period,1HFY23,N/A,
+row47: Text Chunk 1,Financial Data,CEO,Michael Emmett,N/A,
+row48: Text Chunk 1,Financial Data,Reported_NPAT,AUD 0.4mn,N/A,
+row49: Text Chunk 1,Financial Data,Underlying_NPAT,AUD 46.7mn,N/A,
+row50: Text Chunk 1,Financial Data,Earnings_Per_Share,48.18 cents,N/A,
+row51: Text Chunk 1,Financial Data,Interim_Dividend,17.0 cents per share,N/A,
+row52: Text Chunk 1,Financial Data,Tysers_Performance,Exceeded forecasts,N/A,
+row53: Text Chunk 1,Financial Data,Australian_Broking_Performance,Revenue growth & margin expansion,N/A,
+row54: Text Chunk 1,Financial Data,Agency_Growth,Well progressed,N/A,
+row55: Text Chunk 1,Financial Data,NZ_Revenue_Profit,Increased,N/A,
+row56: Text Chunk 1,Financial Data,BizCover_Growth,Continues,N/A,
+row57: Text Chunk 1,Financial Data,FY23_NPAT_Guidance,Upgraded to AUD 112.9mn - AUD 121.4mn,N/A,
+row58: Text Chunk 2,Financial Data,Company_Name,AUB Group,N/A,
+row59: Text Chunk 2,Financial Data,Tysers_Result_Inclusion_Date,1 October 2022,N/A,
+row60: Text Chunk 2,Financial Data,Tysers_Prerformance,Performed above expectations,N/A,
+row61: Text Chunk 2,Financial Data,Tysers_Revenue_Growth_Period,3 months to 31 December 2022,N/A,
+row62: Text Chunk 2,Financial Data,Australian_Broking_Growth_Period,1HFY23,N/A,
+row63: Text Chunk 2,Financial Data,Australian_Broking_Increase_Factors,Driven by organic and bolt-on acquisition growth,N/A,
+row64: Text Chunk 3,Financial Data,Underlying_PreTax_Profit_Agencies_1HFY23,AUD 12.3 million,N/A,
+row65: Text Chunk 3,Financial Data,Underlying_PreTax_Profit_Agencies_1HFY22,AUD 8.9 million,N/A,
+row66: Text Chunk 3,Financial Data,EBIT_Margin_Agencies_1HFY23,31.6%,N/A,
+row67: Text Chunk 3,Financial Data,Strata_Unit_Underwriters_Acquisition_Date,1 September 2022,N/A,
+row68: Text Chunk 3,Financial Data,Underlying_PreTax_Profit_NZ_Broking_1HFY23,AUD 4.8 million,N/A,
+row69: Text Chunk 3,Financial Data,Underlying_PreTax_Profit_NZ_Broking_1HFY22,AUD 3.5 million,N/A,
+row70: Text Chunk 3,Financial Data,Technology_Investment_NZ_Broking_1HFY23,AUD 3.4 million,N/A,
+row71: Text Chunk 3,Financial Data,Technology_Investment_NZ_Broking_1HFY22,AUD 2.2 million,N/A,
+row72: Text Chunk 3,Financial Data,Underlying_PreTax_Profit_BizCover_1HFY23,AUD 5.7 million,N/A,
+row73: Text Chunk 3,Financial Data,Underlying_PreTax_Profit_BizCover_1HFY22,AUD 4.9 million,N/A,
+row74: Text Chunk 3,Financial Data,EBIT_Margin_BizCover_1HFY23,38.4%,N/A,
+row75: Text Chunk 3,Financial Data,Leverage_Ratio_Dec2022,2.74,N/A,
+row76: Text Chunk 3,Financial Data,Cash_and_Undrawn_Debt_Dec2022,AUD 50.3 million,N/A,
+row77: Text Chunk 3,Financial Data,Interim_Dividend,17.0 cents per share,N/A,
+row78: Text Chunk 3,Financial Data,Interim_Dividend_Payable_Date,4 April 2023,N/A,
+row79: Text Chunk 3,Financial Data,Interim_Dividend_Record_Date,2 March 2023,N/A,
+row80: Text Chunk 4,Financial Data,FY23_Dividend_Payout_Ratio,50% to 70%,N/A,
+row81: Text Chunk 4,Financial Data,Dividend_Reinvestment_Plan_Status,Suspended,N/A,
+row82: Text Chunk 4,Financial Data,FY23_Underlying_NPAT_Guidance_Range,AUD 112.9 million to AUD 121.4 million,N/A,
+row83: Text Chunk 4,Financial Data,Tysers_Profit_Inclusion_Start_Date,1 October 2022,N/A,
+row84: General Commentary,Document Summary,Overall Document Commentary,""Company_Name: 1UB Group
+
+Period: 1HFY23
+
+CEO: Michael Emmett
+
+Reported_NPAT: AUD 0.4mn
+
+Underlying_NPAT: AUD 46.7mn
+
+Earnings_Per_Share: 48.18 cents
+
+Interim_Dividend: 17.0 cents per share
+
+Tysers_Performance: Exceeded forecasts
+
+Australian_Broking_Performance: Revenue growth & margin expansion
+
+Agency_Growth: Well progressed
+
+NZ_Revenue_Profit: Increased
+
+BizCover_Growth: Continues
+
+FY23_NPAT_Guidance: Upgraded to AUD 112.9mn - AUD 121.4mn
+
+Company_Name: AUB Group
+
+Tysers_Result_Inclusion_Date: 1 October 2022
+
+Tysers_Prerformance: Performed above expectations
+
+Tysers_Revenue_Growth_Period: 3 months to 31 December 2022
+
+Australian_Broking_Growth_Period: 1HFY23
+
+Australian_Broking_Increase_Factors: Driven by organic and bolt-on acquisition growth
+
+Underlying_PreTax_Profit_Agencies_1HFY23: AUD 12.3 million
+
+Underlying_PreTax_Profit_Agencies_1HFY22: AUD 8.9 million
+
+EBIT_Margin_Agencies_1HFY23: 31.6%
+
+Strata_Unit_Underwriters_Acquisition_Date: 1 September 2022
+
+Underlying_PreTax_Profit_NZ_Broking_1HFY23: AUD 4.8 million
+
+Underlying_PreTax_Profit_NZ_Broking_1HFY22: AUD 3.5 million
+
+Technology_Investment_NZ_Broking_1HFY23: AUD 3.4 million
+
+Technology_Investment_NZ_Broking_1HFY22: AUD 2.2 million
+
+Underlying_PreTax_Profit_BizCover_1HFY23: AUD 5.7 million
+
+Underlying_PreTax_Profit_BizCover_1HFY22: AUD 4.9 million
+
+EBIT_Margin_BizCover_1HFY23: 38.4%
+
+Leverage_Ratio_Dec2022: 2.74
+
+Cash_and_Undrawn_Debt_Dec2022: AUD 50.3 million
+
+Interim_Dividend: 17.0 cents per share
+
+Interim_Dividend_Payable_Date: 4 April 2023
+
+Interim_Dividend_Record_Date: 2 March 2023
+
+FY23_Dividend_Payout_Ratio: 50% to 70%
+
+Dividend_Reinvestment_Plan_Status: Suspended
+
+FY23_Underlying_NPAT_Guidance_Range: AUD 112.9 million to AUD 121.4 million
+
+Tysers_Profit_Inclusion_Start_Date: 1 October 2022
+
+
+
+Document Overview:
+
+1HFY23 Performance Overview
+
+- Underlying NPAT of AUD 46.7mn (1HFY22: AUD 30.6mn)
+
+- Underlying earnings per share of 48.18 cents per share (1HFY22: 40.30 cents).
+
+- Reported Net Profit After Tax of AUD 0.4mn (1HFY22: AUD 29.7mn) was impacted by
+
+acquisition expenses.
+
+- Fully franked interim dividend of 17.0 cents per share (1HFY22: 17.0 cps).
+
+- 1HFY23 included 3 months of Tysers profit for the first time. Tysers revenue and profit
+
+performed above expectations.
+
+- Australian Broking delivered revenue growth & margin expansion from ongoing network
+
+optimisation, disciplined acquisitions and enhanced broker propositions.
+
+Full Document Analysis:
+
+1HFY23 Performance Overview - Underlying NPAT of AUD 46.7mn (1HFY22: AUD 30.6mn) - Underlying earnings per share of 48.18 cents per share (1HFY22: 40.30 cents).
+
+- Reported Net Profit After Tax of AUD 0.4mn (1HFY22: AUD 29.7mn) was impacted by - Fully franked interim dividend of 17.0 cents per share (1HFY22: 17.0 cps). - 1HFY23 included 3 months of Tysers profit for the first time. Tysers revenue and profit
+
+performed above expectations. - Australian Broking delivered revenue growth & margin expansion from ongoing network optimisation, disciplined acquisitions and enhanced broker propositions.
+
+- Agency growth progressed well with improvements in revenue, and profit as a result of enhanced scale and capability expansion. - New Zealand revenue and profit increased including the impact of technology spend.
+
+- Growth in BizCover continues. - FY23 Underlying NPAT guidance upgraded to AUD 112.9mn - AUD 121.4mn including 9 months of Tysers profit from 1 October 2022.
+
+AUB Group CEO and Managing Director, Michael Emmett, said: ""All parts of AUB Group performed strongly during 1H23 with momentum continuing into the second half. As a result, we have upgraded the outlook for the full year. Tysers performance for the three months since acquisition on 1 October"",N/A,Complete document analysis and extracted information summary
