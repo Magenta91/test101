@@ -10,9 +10,28 @@ load_dotenv()
 class TextractProcessor:
     def __init__(self):
         """Initialize AWS Textract and S3 clients with credentials from environment"""
-        self.textract_client = boto3.client('textract')
-        self.s3_client = boto3.client('s3')
-        self.bucket_name = 'textract-bucket-lk'
+        import os
+        
+        # Check if AWS credentials are available
+        aws_key = os.environ.get('AWS_ACCESS_KEY_ID', '').strip()
+        aws_secret = os.environ.get('AWS_SECRET_ACCESS_KEY', '').strip()
+        
+        self.aws_available = bool(aws_key and aws_secret and len(aws_key) > 10 and len(aws_secret) > 10)
+        
+        if self.aws_available:
+            try:
+                self.textract_client = boto3.client('textract')
+                self.s3_client = boto3.client('s3')
+                self.bucket_name = 'textract-bucket-lk'
+                print("✅ AWS Textract initialized")
+            except Exception as e:
+                print(f"⚠️ AWS Textract initialization failed: {e}")
+                self.aws_available = False
+        else:
+            print("⚠️ AWS credentials not found - Textract disabled")
+            self.textract_client = None
+            self.s3_client = None
+            self.bucket_name = None
 
     def extract_text_from_pdf_bytes(self, pdf_bytes: bytes) -> Dict[str, Any]:
         """
@@ -25,6 +44,36 @@ class TextractProcessor:
             Dict[str, Any]: Structured JSON with document_text, tables, and key_values
         """
         start_time = time.time()
+        
+        # Skip AWS if not available, go directly to Tesseract
+        if not self.aws_available:
+            print("⚠️ AWS not available, using Tesseract OCR directly")
+            try:
+                from tesseract_processor import TesseractProcessor
+                tesseract = TesseractProcessor()
+                result = tesseract.extract_text_from_pdf_bytes(pdf_bytes)
+                result["extraction_method"] = "Tesseract OCR (No AWS)"
+                
+                if "document_text" in result and result["document_text"]:
+                    result["full_text"] = " ".join(result["document_text"])
+                else:
+                    result["full_text"] = ""
+                
+                return result
+            except Exception as tesseract_error:
+                print(f"❌ Tesseract OCR failed: {tesseract_error}")
+                error_text = f"Error: No AWS and Tesseract failed: {str(tesseract_error)}"
+                return {
+                    "document_text": [error_text],
+                    "tables": [],
+                    "key_values": [],
+                    "footnotes": [],
+                    "footnote_markers": {},
+                    "enhanced_text": [],
+                    "full_text": error_text,
+                    "extraction_method": "Failed",
+                    "error": str(tesseract_error)
+                }
         
         try:
             print("Using Amazon Textract with S3 storage for PDF processing")

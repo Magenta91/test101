@@ -1,5 +1,5 @@
 # Railway Dockerfile for PDF Extraction Service
-FROM python:3.10-bullseye
+FROM python:3.10
 
 # Install system dependencies including Tesseract
 RUN apt-get update && apt-get install -y \
@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y \
     libtesseract-dev \
     libleptonica-dev \
     pkg-config \
+    build-essential \
+    libcrypt1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set Tesseract data path
