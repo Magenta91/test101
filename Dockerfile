@@ -1,16 +1,24 @@
 # Railway Dockerfile for PDF Extraction Service
-FROM python:3.10
+# Using Ubuntu base for better library compatibility
+FROM ubuntu:22.04
 
-# Install system dependencies including Tesseract
+# Prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Python and system dependencies
 RUN apt-get update && apt-get install -y \
+    python3.10 \
+    python3-pip \
     tesseract-ocr \
     tesseract-ocr-eng \
     libtesseract-dev \
     libleptonica-dev \
     pkg-config \
     build-essential \
-    libcrypt1 \
     && rm -rf /var/lib/apt/lists/*
+
+# Create python symlink
+RUN ln -sf /usr/bin/python3.10 /usr/bin/python
 
 # Set Tesseract data path
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata/
@@ -20,8 +28,8 @@ WORKDIR /app
 
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python3 -m pip install --no-cache-dir --upgrade pip
+RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
@@ -30,4 +38,4 @@ COPY . .
 ENV PORT=8080
 
 # Start command
-CMD gunicorn --bind 0.0.0.0:$PORT app:app --timeout 120 --workers 1 --preload --log-level info
+CMD python3 -m gunicorn --bind 0.0.0.0:$PORT app:app --timeout 120 --workers 1 --preload --log-level info
