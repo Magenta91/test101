@@ -27,6 +27,14 @@ os.makedirs('static', exist_ok=True)
 def index():
     return render_template('index.html')
 
+@app.route('/health')
+def health():
+    """Health check endpoint for Railway"""
+    return jsonify({
+        'status': 'healthy',
+        'message': 'PDF Extraction Service is running'
+    }), 200
+
 @app.route('/extract', methods=['POST'])
 def extract():
     if 'pdf' not in request.files:
